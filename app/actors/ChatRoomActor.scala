@@ -33,11 +33,10 @@ object ChatRoomActor {
       Flow[JsValue].via(Flow.fromSinkAndSource(chatSink, chatSource)).log(id + "Flow")
     }
 
-
     Behaviors.receiveMessage { message =>
       message match {
         case GetChatFlow(replyTo) =>
-          println("Get the chat flow")
+          println("Returning the chat flow")
           replyTo ! chatFlow
           Behaviors.same
       }

@@ -26,9 +26,7 @@ device than the computer the server is running on).
 
 ## Authors
 
-Contributors names and contact info
-
-ex. Jim Miller
+Jim Miller
 
 ## Version History
 

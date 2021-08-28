@@ -39,9 +39,19 @@ class HomeController @Inject()(managerActor: ActorRef[ManagerActor.Command],
     Ok(views.html.index())
   }
 
-  def createRoom() = Action { implicit request: Request[AnyContent] =>
-    managerActor ! ManagerActor.CreateChatRoom
-    Ok
+  def createRoom() = Action.async { implicit request: Request[AnyContent] =>
+    implicit val timeout = Timeout(1.second)
+    val futureId = managerActor.ask(replyTo => ManagerActor.CreateChatRoom(replyTo))
+    println("Received create room post")
+
+    futureId.map { id =>
+      println("Returning the url")
+      Ok(Json.obj("id" -> id))
+    }.recover {
+      case e: Exception =>
+        println("Uh oh spaghettio")
+        Ok(Json.obj("error" -> "Couldn't create room"))
+    }
   }
 
   def roomWS(id: String) = WebSocket.acceptOrResult[JsValue, JsValue] { implicit rh: RequestHeader =>

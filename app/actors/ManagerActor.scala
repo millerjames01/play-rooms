@@ -26,12 +26,12 @@ object ManagerActor extends ActorModule {
   sealed trait Command
 
   type WSFlow = Flow[JsValue, JsValue, NotUsed]
-  case object CreateChatRoom extends Command
+  case class CreateChatRoom(replyTo: ActorRef[String]) extends Command
   case class FlowQuery(id: String, replyTo: ActorRef[WSFlow]) extends Command
   private case class ListingResponse(listing: Receptionist.Listing, flowQ: FlowQuery) extends Command
 
 
-  @Provides def apply()(implicit materializer: Materializer): Behavior[Command] = {
+  @Provides def apply(): Behavior[Command] = {
     Behaviors.receive { (context, message) =>
       def listingAdapter(flowQ: FlowQuery): ActorRef[Receptionist.Listing] =
         context.messageAdapter { listing =>
@@ -40,9 +40,11 @@ object ManagerActor extends ActorModule {
         }
 
       message match {
-        case CreateChatRoom => {
+        case CreateChatRoom(replyTo) => {
+          implicit val mat: Materializer = Materializer.apply(context)
           val newId = generateRoomKey
-          context.spawn(ChatRoomActor(newId), "Room" + newId)
+          context.spawn(ChatRoomActor(newId)(mat), "Room" + newId)
+          replyTo ! newId
           println("New Chatroom created @ Room" + newId)
         }
         case fq: FlowQuery => {

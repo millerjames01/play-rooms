@@ -1,5 +1,22 @@
 @()
+@import helper._
 
 @main("Welcome to Play") {
-  <h1>Welcome to Play!</h1>
+<div id="sidebar">
+  <form id="make-a-room">
+     <button>
+       Make a Room
+     </button>
+  </form>
+  <form id="join-a-room">
+      <button>
+        Join a Room
+      </button>
+      <input type="text" placeholder="Type in the Room ID" id="name">
+  </form>
+</div>
+<div id="room-area">
+  <div id="chat-display"></div>
+  <textarea id="message-area"></textarea>
+</div>
 }

@@ -1,4 +1,4 @@
-# Project Title
+# Play Rooms
 
 A proof-of-concept project leveraging Play! Framework, Akka typed actors, and websockets 
 to create a real-time multi-chatroom web application.

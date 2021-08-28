@@ -1,26 +1,16 @@
 package actors
 
-import javax.inject._
-
-import akka.actor.typed.scaladsl.{ ActorContext, Behaviors }
-import akka.actor.typed.{ ActorRef, ActorSystem, Behavior, PostStop, Scheduler }
-import akka.actor.typed.receptionist.{Receptionist, ServiceKey}
+import akka.actor.typed.scaladsl.Behaviors
+import akka.actor.typed.{ ActorRef, Behavior }
+import akka.actor.typed.receptionist.Receptionist
 import akka.stream._
 import akka.stream.scaladsl._
-import akka.util.Timeout
-import akka.{ Done, NotUsed }
-import org.slf4j.Logger
+import akka.NotUsed
 import play.api.libs.json._
 import play.api.libs.concurrent.ActorModule
 import com.google.inject.Provides
-import scala.concurrent.duration._
-import scala.concurrent.{ ExecutionContext, Future }
-import scala.util.Try
 import scala.io.Source
 import scala.util.Random
-
-import actors.ChatRoomActor
-
 
 object ManagerActor extends ActorModule {
   sealed trait Command
@@ -40,25 +30,22 @@ object ManagerActor extends ActorModule {
         }
 
       message match {
-        case CreateChatRoom(replyTo) => {
+        case CreateChatRoom(replyTo) =>
           implicit val mat: Materializer = Materializer.apply(context)
           val newId = generateRoomKey
           context.spawn(ChatRoomActor(newId)(mat), "Room" + newId)
           replyTo ! newId
           println("New Chatroom created @ Room" + newId)
-        }
-        case fq: FlowQuery => {
+        case fq: FlowQuery =>
           context.system.receptionist !
             Receptionist.Find(ChatRoomActor.ChatRoomKey(fq.id), listingAdapter(fq))
           println("Chatroom query found for " + "Room" + fq.id)
-        }
-        case ListingResponse(listing, flowQ) => {
+        case ListingResponse(listing, flowQ) =>
           val CRKey = ChatRoomActor.ChatRoomKey(flowQ.id)
           listing.serviceInstances(CRKey) foreach { ref: ActorRef[ChatRoomActor.Command] =>
             println("Chatroom located @ Room" + flowQ.id)
             ref ! ChatRoomActor.GetChatFlow(flowQ.replyTo)
           }
-        }
       }
 
       Behaviors.same

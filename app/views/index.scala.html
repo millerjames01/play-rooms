@@ -1,22 +1,25 @@
-@()
+@()(implicit config: play.api.Configuration)
 @import helper._
 
 @main("Welcome to Play") {
-<div id="sidebar">
+<div id="sidebar" host-url="@config.get[String]("my.host")">
+  <div id="logo" style="background-image: url('@routes.Assets.versioned("images/play-rooms-transparent.png")'"></div>
   <form id="make-a-room">
      <button>
-       Make a Room
+       > Make a Room
      </button>
   </form>
   <form id="join-a-room">
       <button>
-        Join a Room
+        > Join a Room
       </button>
       <input type="text" placeholder="Type in the Room ID" id="name">
   </form>
+  <div id="room-info">
+  </div>
 </div>
 <div id="room-area">
   <div id="chat-display"></div>
-  <textarea id="message-area"></textarea>
+  <textarea id="message-area" placeholder="Press enter to send..."></textarea>
 </div>
 }

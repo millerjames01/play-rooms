@@ -1,7 +1,6 @@
 package controllers
 
 import javax.inject._
-import play.api._
 import play.api.mvc._
 import actors.ManagerActor
 import akka.util.Timeout
@@ -9,11 +8,10 @@ import akka.actor.typed.{ActorRef, Scheduler}
 import akka.actor.typed.scaladsl.AskPattern._
 import akka.stream.Materializer
 import play.api.libs.json.{JsValue, Json}
-import play.api.Logger
+import play.api.Configuration
 
 import scala.concurrent.duration._
-import scala.concurrent.{ExecutionContext, Future}
-
+import scala.concurrent.ExecutionContext
 /**
  * This controller creates an `Action` to handle HTTP requests to the
  * application's home page.
@@ -23,10 +21,11 @@ class HomeController @Inject()(managerActor: ActorRef[ManagerActor.Command],
                                val controllerComponents: ControllerComponents)
                               (implicit materializer: Materializer,
                                executionContext: ExecutionContext,
-                               scheduler: Scheduler)
+                               scheduler: Scheduler,
+                               config: Configuration)
   extends BaseController {
 
-  val logger = play.api.Logger(getClass)
+  private val logger = play.api.Logger(getClass)
 
   /**
    * Create an Action to render an HTML page.
@@ -35,35 +34,33 @@ class HomeController @Inject()(managerActor: ActorRef[ManagerActor.Command],
    * will be called when the application receives a `GET` request with
    * a path of `/`.
    */
-  def index() = Action { implicit request: Request[AnyContent] =>
+  def index(): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
     Ok(views.html.index())
   }
 
-  def createRoom() = Action.async { implicit request: Request[AnyContent] =>
-    implicit val timeout = Timeout(1.second)
+  def createRoom(): Action[AnyContent] = Action.async { implicit request: Request[AnyContent] =>
+    implicit val timeout: Timeout = Timeout(1.second)
     val futureId = managerActor.ask(replyTo => ManagerActor.CreateChatRoom(replyTo))
     println("Received create room post")
 
     futureId.map { id =>
-      println("Returning the url")
       Ok(Json.obj("id" -> id))
     }.recover {
-      case e: Exception =>
-        println("Uh oh spaghettio")
+      case _: Exception =>
         Ok(Json.obj("error" -> "Couldn't create room"))
     }
   }
 
-  def roomWS(id: String) = WebSocket.acceptOrResult[JsValue, JsValue] { implicit rh: RequestHeader =>
-    implicit val timeout = Timeout(1.second)
+  def roomWS(id: String): WebSocket = WebSocket.acceptOrResult[JsValue, JsValue] { implicit rh: RequestHeader =>
+    implicit val timeout: Timeout = Timeout(1.second)
     val futureFlow = managerActor.ask(replyTo => ManagerActor.FlowQuery(id, replyTo))
 
     futureFlow.map { flow =>
       Right(flow)
     }.recover {
       case e: Exception =>
-        logger.error("Cannot create websocket", e)
-        val jsError = Json.obj("error" -> "Cannot create websocket")
+        logger.error("Failed to join the room.", e)
+        val jsError = Json.obj("error" -> "Failed to join the room.")
         val result = InternalServerError(jsError)
         Left(result)
     }

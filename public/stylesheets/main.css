@@ -1,0 +1,161 @@
+body {
+     display: flex;
+     flex-direction: row;
+     margin: 0px;
+}
+
+#sidebar, #room-area, #sidebar form {
+    display: flex;
+    flex-direction: column;
+}
+
+#sidebar {
+    min-height: calc(100vh - 40px);
+    width: 300px;
+    background-color:#333;
+    padding: 20px;
+    align-items: start;
+}
+
+#sidebar form {
+    align-items: start;
+}
+
+button {
+    display: inline-block;
+    border: none;
+    padding: 2rem 0rem;
+    margin: 0;
+    text-decoration: none;
+    background: inherit;
+    color: #ffffff;
+    font-size: 2em;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    text-align: left;
+    transition: background 250ms ease-in-out, transform 150ms ease;
+    margin: 20px 0;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
+
+#sidebar * {
+    font-family: 'Space Mono', monospace;
+    font-size: 30px;
+    color: white;
+    font-weight: 700;
+}
+
+#sidebar #logo {
+    height: 150px;
+    width: 100%;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    margin-bottom: 30px;
+}
+
+form button {
+  display: block;
+  position: relative;
+  padding: 0.2em 0;
+}
+
+form button::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 0.1em;
+  background-color: white;
+  transition: opacity 300ms, transform 300ms;
+}
+
+#sidebar form input {
+  display: none;
+  border: none;
+  border-bottom: 0.1em solid #333;
+  -webkit-appearance: none;
+  -ms-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: inherit;
+  padding: 0.2em 0;
+  font-size: 0.75em;
+  width: 280px;
+  font-weight: 400;
+}
+
+form input:focus {
+    border-bottom: 0.1em solid #fff;
+}
+
+*:focus {
+  outline: none;
+  border: none;
+  -webkit-appearance: none;
+  -ms-appearance: none;
+  -moz-appearance: none;
+}
+
+form button::after {
+  opacity 1;
+  transform: scale(0);
+  transform-origin: center;
+}
+
+form button:hover::after,
+form button:focus::after{
+  transform: scale(1);
+}
+
+#room-info {
+    display: none;
+    text-align: center;
+    align-self: center;
+}
+
+.copyable {
+    text-decoration: underline;
+    text-decoration-thickness: .1em;
+    cursor: pointer;
+}
+
+#sidebar .small-note {
+    font-size: .4em;
+    color: #aaa;
+    display: block;
+}
+
+#room-area {
+    min-height: 100vh;
+    width: calc(100% - 300px);
+    background-color: #444;
+}
+
+#chat-display {
+    height: 90%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: flex-end;
+
+}
+
+#chat-display .message {
+    font-family: 'Space Mono', monospace;
+    font-size: 14px;
+    padding: 5px 10px;
+    margin: 0px 10px 10px 0px;
+    background-color: #aee;
+    border-radius: 10px;
+}
+
+#message-area {
+    height: 10%;
+    background-color: #666;
+    border: 5px solid #555;
+    font-family: "Space Mono", monospace;
+}

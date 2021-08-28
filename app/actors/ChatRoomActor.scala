@@ -1,8 +1,8 @@
 package actors
 
-import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
-import akka.actor.typed.{ActorRef, ActorSystem, Behavior, PostStop, Scheduler}
-import akka.actor.typed.receptionist.{Receptionist, ServiceKey}
+import akka.actor.typed.scaladsl.Behaviors
+import akka.actor.typed.{ ActorRef, Behavior }
+import akka.actor.typed.receptionist.{ Receptionist, ServiceKey }
 import akka.stream.Materializer
 import akka.stream.scaladsl._
 import akka.NotUsed
@@ -33,13 +33,12 @@ object ChatRoomActor {
       Flow[JsValue].via(Flow.fromSinkAndSource(chatSink, chatSource)).log(id + "Flow")
     }
 
-    Behaviors.receiveMessage { message =>
-      message match {
-        case GetChatFlow(replyTo) =>
-          println("Returning the chat flow")
-          replyTo ! chatFlow
-          Behaviors.same
-      }
+    Behaviors.receiveMessage {
+      case GetChatFlow(replyTo) =>
+        replyTo ! chatFlow
+        Behaviors.same
+      case ListingResponse(_) => Behaviors.same
+
     }
   }
 }

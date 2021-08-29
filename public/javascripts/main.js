@@ -5,6 +5,32 @@ $(function() {
         });
     }
 
+    var setIntro = function(name, color) {
+        $("#intro").html("Hello, <span style='color: " + color + ";'>" + name + "</span>!");
+    };
+
+    var getNameAndColor = function() {
+        storage = window.localStorage;
+        localName = storage.getItem("alias");
+        localColor = storage.getItem("color");
+
+        if(localName ===  null || localName == "") {
+             localName = $("body").attr("data-name");
+             storage.setItem("alias", localName);
+        }
+
+        if(localColor ===  null || localColor == "") {
+            localColor = $("body").attr("data-color");
+            console.log(localColor);
+            storage.setItem("color", localColor);
+        }
+
+        return [localName, localColor];
+    }
+
+    var [name, color] = getNameAndColor();
+    setIntro(name, color);
+
     $('#make-a-room button').click(function(e) {
         e.preventDefault();
         $.ajax({
@@ -50,13 +76,13 @@ $(function() {
         ws = new WebSocket("ws://" + hostUrl + ":9000/room/" + id);
         ws.onmessage = function(event) {
             var data = JSON.parse(event.data)
-            $('#chat-display').append('<div class=message>' + data.text + '</div>');
+            $('#chat-display').append('<div class="header" style="color: ' + data.color + ';">' + data.name + '</div><div class="message">' + data.text + '</div>');
         };
 
         $('#message-area').on('keypress', function(e) {
             if(e.which == 13) {
                 e.preventDefault();
-                ws.send(JSON.stringify({ type: "message", text: $(this).val()}));
+                ws.send(JSON.stringify({ type: "message", text: $(this).val(), name: localName, color: localColor}));
                 $(this).val("");
             }
         });

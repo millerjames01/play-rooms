@@ -3,14 +3,13 @@ package actors
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ ActorRef, Behavior }
 import akka.actor.typed.receptionist.Receptionist
-import akka.stream._
-import akka.stream.scaladsl._
+import akka.stream.Materializer
+import akka.stream.scaladsl.Flow
 import akka.NotUsed
-import play.api.libs.json._
+import play.api.libs.json.JsValue
 import play.api.libs.concurrent.ActorModule
 import com.google.inject.Provides
-import scala.io.Source
-import scala.util.Random
+import util.KeyGenerator
 
 object ManagerActor extends ActorModule {
   sealed trait Command
@@ -32,7 +31,7 @@ object ManagerActor extends ActorModule {
       message match {
         case CreateChatRoom(replyTo) =>
           implicit val mat: Materializer = Materializer.apply(context)
-          val newId = generateRoomKey
+          val newId = KeyGenerator.generateRoomKey
           context.spawn(ChatRoomActor(newId)(mat), "Room" + newId)
           replyTo ! newId
           println("New Chatroom created @ Room" + newId)
@@ -52,15 +51,5 @@ object ManagerActor extends ActorModule {
     }
   }
 
-  private def generateRoomKey: String = {
-    val keys = for (_ <- 1 to 3) yield nouns(Random.nextInt(nouns.length)).capitalize
-    keys.mkString
-  }
 
-  private lazy val nouns = {
-    val nounsSource = Source.fromFile("app/resources/nouns.txt")
-    val list = nounsSource.getLines().toIndexedSeq
-    nounsSource.close
-    list
-  }
 }

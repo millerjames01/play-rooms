@@ -21,6 +21,10 @@ body {
     align-items: start;
 }
 
+#intro {
+    margin: 50px 0px;
+}
+
 button {
     display: inline-block;
     border: none;
@@ -141,15 +145,22 @@ form button:focus::after{
     flex-direction: column;
     align-items: flex-end;
     justify-content: flex-end;
+    overflow-y: auto;
+}
 
+#chat-display .header {
+    font-family: 'Space Mono', monospace;
+    padding: 0px 10px;
+    font-size: 16px;
+    font-weight: 700;
 }
 
 #chat-display .message {
     font-family: 'Space Mono', monospace;
-    font-size: 14px;
+    font-size: 20px;
     padding: 5px 10px;
     margin: 0px 10px 10px 0px;
-    background-color: #aee;
+    background-color: #ccc;
     border-radius: 10px;
 }
 

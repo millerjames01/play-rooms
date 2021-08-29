@@ -4,7 +4,7 @@
  * two arguments, a `String` for the title of the page and an `Html`
  * object to insert into the body of the page.
  *@
-@(title: String)(content: Html)
+@(title: String)(content: Html)(implicit req: play.api.mvc.Request[AnyContent])
 
 <!DOCTYPE html>
 <html lang="en">
@@ -16,7 +16,7 @@
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@@400;700&display=swap" rel="stylesheet">     </head>
-    <body>
+    <body data-name="@req.session.get("alias")" data-color="@req.session.get("color")">
         @* And here's where we render the `Html` object containing
          * the page content. *@
         @content

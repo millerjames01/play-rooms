@@ -38,7 +38,6 @@ object ChatRoomActor {
         replyTo ! chatFlow
         Behaviors.same
       case ListingResponse(_) => Behaviors.same
-
     }
   }
 }

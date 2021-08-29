@@ -1,9 +1,10 @@
-@()(implicit config: play.api.Configuration)
+@()(implicit request: play.api.mvc.Request[AnyContent], config: play.api.Configuration)
 @import helper._
 
 @main("Welcome to Play") {
 <div id="sidebar" host-url="@config.get[String]("my.host")">
   <div id="logo" style="background-image: url('@routes.Assets.versioned("images/play-rooms-transparent.png")'"></div>
+  <div id="intro"></div>
   <form id="make-a-room">
      <button>
        > Make a Room

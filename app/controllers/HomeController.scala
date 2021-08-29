@@ -9,6 +9,7 @@ import akka.actor.typed.scaladsl.AskPattern._
 import akka.stream.Materializer
 import play.api.libs.json.{JsValue, Json}
 import play.api.Configuration
+import util.{ AliasGenerator, ColorGenerator }
 
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext
@@ -35,7 +36,12 @@ class HomeController @Inject()(managerActor: ActorRef[ManagerActor.Command],
    * a path of `/`.
    */
   def index(): Action[AnyContent] = Action { implicit request: Request[AnyContent] =>
-    Ok(views.html.index())
+    val randomName = AliasGenerator.generate
+    val randomColor = ColorGenerator.generate
+    Ok(views.html.index()).withSession(
+      "alias" -> randomName,
+      "color" -> randomColor
+    )
   }
 
   def createRoom(): Action[AnyContent] = Action.async { implicit request: Request[AnyContent] =>

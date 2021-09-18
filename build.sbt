@@ -8,7 +8,7 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala)
 scalaVersion := "2.13.6"
 
 libraryDependencies += guice
-libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "5.0.0" % Test
+libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0" % Test
 
 // The newer Akka version you want to use.
 val AkkaVersion = "2.6.14"
@@ -16,9 +16,11 @@ val AkkaVersion = "2.6.14"
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-actor-typed" % AkkaVersion,
   "com.typesafe.akka" %% "akka-actor-testkit-typed" % AkkaVersion % Test,
-  "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
+  "com.typesafe.akka" %% "akka-stream-typed" % AkkaVersion,
   "com.typesafe.akka" %% "akka-stream-testkit" % AkkaVersion % Test
 )
+
+PlayKeys.devSettings += "play.server.http.idleTimeout" -> "infinite"
 
 // Adds additional packages into Twirl
 //TwirlKeys.templateImports += "com.example.controllers._"

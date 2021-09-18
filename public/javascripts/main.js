@@ -31,52 +31,26 @@ $(function() {
     var [name, color] = getNameAndColor();
     setIntro(name, color);
 
-    $('#make-a-room button').click(function(e) {
-        e.preventDefault();
-        $.ajax({
-          type: 'POST',
-          url: '/createRoom',
-          headers: {
-              'Content-Type': 'application/json'
-          },
-          success: function(data) {
-            $('#make-a-room, #join-a-room').hide(400);
-            $('#room-info').html(
-              'Welcome to <span class="copyable">' + data['id'] + '</span><br>' +
-              '<span class="small-note">(Click to copy to clipboard.)</span>'
-            );
-            $('#room-info').show(400);
-            copyClick();
-            makeWSConnection(data['id']);
-          }
-        });
-    });
-
-    $('#join-a-room button').click(function(e) {
-        e.preventDefault();
-        $('#make-a-room, #join-a-room button').hide(400);
-        $('#join-a-room input').show(400);
-    });
-
-    $('#join-a-room input').on('keypress', function(e) {
-         if(e.which == 13) {
-             e.preventDefault();
-             makeWSConnection($(this).val());
-             $('#join-a-room').hide(400);
-             $('#room-info').html(
-                  'Welcome to <span class="copyable">' + $(this).val() + '</span><br>' +
-                   '<span class="small-note">(Click to copy to clipboard.)</span>'
-             );
-             $('#room-info').show(400);
-         }
-    });
-
-    const makeWSConnection = function(id) {
+    const makeWSConnection = function(name, color) {
         hostUrl = $("#sidebar").attr('host-url');
-        ws = new WebSocket("ws://" + hostUrl + ":9000/room/" + id);
+        console.log("ws://" + hostUrl + ":9000/connect/" + name + "/" + color.substring(1));
+        ws = new WebSocket("ws://" + hostUrl + ":9000/connect/" + name + "/" + color.substring(1));
         ws.onmessage = function(event) {
             var data = JSON.parse(event.data)
-            $('#chat-display').append('<div class="header" style="color: ' + data.color + ';">' + data.name + '</div><div class="message">' + data.text + '</div>');
+            switch (data.type) {
+                case "message":
+                    $('#chat-display').append('<div class="header" style="color: ' + data.color + ';">' + data.name + '</div><div class="message">' + data.text + '</div>');
+                    break;
+                case "room-joined":
+                    $('#make-a-room, #join-a-room button').hide(400);
+                    $('#join-a-room input').show(400);
+                    $('#room-info').html(
+                       data.message
+                    );
+                    break;
+                case "timeout-error":
+                    $('#chat-display').append('<div class="message">This room has closed due to inactivity</div>');
+            }
         };
 
         $('#message-area').on('keypress', function(e) {
@@ -86,6 +60,28 @@ $(function() {
                 $(this).val("");
             }
         });
+
+        $('#make-a-room button').click(function(e) {
+            e.preventDefault();
+            ws.send(JSON.stringify({ type: "create" }));
+            $('#room-info').show(400);
+            copyClick();
+        });
+
+        $('#join-a-room button').click(function(e) {
+            e.preventDefault();
+            $('#make-a-room, #join-a-room button').hide(400);
+            $('#join-a-room input').show(400);
+        });
+
+        $('#join-a-room input').on('keypress', function(e) {
+             if(e.which == 13) {
+                 e.preventDefault();
+                 ws.send(JSON.stringify({ type: "join", room: $(this).val() }));
+                 $('#room-info').show(400);
+             }
+        });
     };
 
+    makeWSConnection(name, color);
 });

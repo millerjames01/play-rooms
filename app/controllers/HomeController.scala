@@ -2,14 +2,15 @@ package controllers
 
 import javax.inject._
 import play.api.mvc._
-import actors.ManagerActor
+import actors.{ClientActor, ConciergeActor}
 import akka.util.Timeout
 import akka.actor.typed.{ActorRef, Scheduler}
 import akka.actor.typed.scaladsl.AskPattern._
+import akka.stream.typed.scaladsl._
 import akka.stream.Materializer
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{JsObject, JsString, JsValue, Json}
 import play.api.Configuration
-import util.{ AliasGenerator, ColorGenerator }
+import util.{AliasGenerator, ColorGenerator, UserAlias}
 
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext
@@ -18,9 +19,9 @@ import scala.concurrent.ExecutionContext
  * application's home page.
  */
 @Singleton
-class HomeController @Inject()(managerActor: ActorRef[ManagerActor.Command],
-                               val controllerComponents: ControllerComponents)
-                              (implicit materializer: Materializer,
+class HomeController @Inject()(val controllerComponents: ControllerComponents)
+                              (implicit concierge: ActorRef[ConciergeActor.Command],
+                               materializer: Materializer,
                                executionContext: ExecutionContext,
                                scheduler: Scheduler,
                                config: Configuration)
@@ -44,31 +45,37 @@ class HomeController @Inject()(managerActor: ActorRef[ManagerActor.Command],
     )
   }
 
-  def createRoom(): Action[AnyContent] = Action.async { implicit request: Request[AnyContent] =>
-    implicit val timeout: Timeout = Timeout(1.second)
-    val futureId = managerActor.ask(replyTo => ManagerActor.CreateChatRoom(replyTo))
-    println("Received create room post")
+  def connect(clientId: String, color: String): WebSocket = WebSocket.acceptOrResult[JsValue, JsValue] { implicit rh: RequestHeader =>
+    implicit val timeout = Timeout(2.seconds)
 
-    futureId.map { id =>
-      Ok(Json.obj("id" -> id))
-    }.recover {
-      case _: Exception =>
-        Ok(Json.obj("error" -> "Couldn't create room"))
+    val clientRef = concierge.ask(replyTo => ConciergeActor.CreateClient(UserAlias(clientId, color), replyTo))
+
+    val futureFlow = clientRef.map { ref =>
+      ActorFlow.ask(ref) { (jsValue: JsValue, replyTo: ActorRef[JsValue]) =>
+        ref ! ClientActor.Initialize(replyTo)
+        val map = jsValue.as[JsObject].value
+        val typeString = map.get("type") match {
+          case Some(typeValue) => typeValue.as[JsString].value
+          case None => throw new Exception("Badly formatted message")
+        }
+        typeString match {
+          case "create" => ClientActor.CreateRoom
+          case "join" => {
+            val roomId = map.get("room").get.as[JsString]
+            ClientActor.ConnectToRoom(roomId.value)
+          }
+          case "message" => ClientActor.ChatMessage(jsValue)
+          case "leave" => ClientActor.DisconnectFromRoom
+        }
+      }
     }
-  }
-
-  def roomWS(id: String): WebSocket = WebSocket.acceptOrResult[JsValue, JsValue] { implicit rh: RequestHeader =>
-    implicit val timeout: Timeout = Timeout(1.second)
-    val futureFlow = managerActor.ask(replyTo => ManagerActor.FlowQuery(id, replyTo))
 
     futureFlow.map { flow =>
       Right(flow)
-    }.recover {
-      case e: Exception =>
-        logger.error("Failed to join the room.", e)
-        val jsError = Json.obj("error" -> "Failed to join the room.")
-        val result = InternalServerError(jsError)
-        Left(result)
+    }.recover { case e: Exception =>
+      val jsError = Json.obj("error" -> "Cannot create websocket")
+      val result = InternalServerError(jsError)
+      Left(result)
     }
   }
 }

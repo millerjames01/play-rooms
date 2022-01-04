@@ -13,12 +13,8 @@ object ChatRoomActor {
 
   type WSFlow = Flow[JsValue, JsValue, NotUsed]
   case class GetChatFlow(replyTo: ActorRef[WSFlow]) extends Command
-  private case class ListingResponse(listing: Receptionist.Listing) extends Command
 
-  def ChatRoomKey(id: String): ServiceKey[Command] = ServiceKey(id)
-
-  def apply(id: String)(implicit materializer: Materializer): Behavior[Command] = Behaviors.setup { context =>
-    context.system.receptionist ! Receptionist.Register(ChatRoomKey(id), context.self)
+  def apply(id: String, clients: List[String])(implicit materializer: Materializer): Behavior[Command] = Behaviors.setup { context =>
 
     val (chatSink, chatSource) = {
       val source = MergeHub.source[JsValue]
@@ -37,7 +33,6 @@ object ChatRoomActor {
       case GetChatFlow(replyTo) =>
         replyTo ! chatFlow
         Behaviors.same
-      case ListingResponse(_) => Behaviors.same
     }
   }
 }

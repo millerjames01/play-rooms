@@ -4,6 +4,6 @@ import play.api.libs.concurrent.AkkaGuiceSupport
 
 class Module extends AbstractModule with AkkaGuiceSupport {
   override def configure(): Unit = {
-    bindTypedActor(ManagerActor(), "managerActor")
+    bindTypedActor(ManagerActor(Map()), "managerActor")
   }
 }

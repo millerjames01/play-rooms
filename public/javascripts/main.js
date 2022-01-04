@@ -55,6 +55,7 @@ $(function() {
     $('#join-a-room button').click(function(e) {
         e.preventDefault();
         $('#make-a-room, #join-a-room button').hide(400);
+        $('#room-info').html('');
         $('#join-a-room input').show(400);
     });
 
@@ -63,9 +64,11 @@ $(function() {
              e.preventDefault();
              makeWSConnection($(this).val());
              $('#join-a-room').hide(400);
+             $('#join-a-room button').show(400);
+             $('#join-a-room input').hide(400);
              $('#room-info').html(
                   'Welcome to <span class="copyable">' + $(this).val() + '</span><br>' +
-                   '<span class="small-note">(Click to copy to clipboard.)</span>'
+                  '<span class="small-note">(Click to copy to clipboard.)</span>'
              );
              $('#room-info').show(400);
          }
@@ -73,11 +76,18 @@ $(function() {
 
     const makeWSConnection = function(id) {
         hostUrl = $("#sidebar").attr('host-url');
-        ws = new WebSocket("ws://" + hostUrl + ":9000/room/" + id);
+
+        ws = new WebSocket("ws://" + hostUrl + ":9000/room/" + id + "/" + name);
         ws.onmessage = function(event) {
             var data = JSON.parse(event.data)
             $('#chat-display').append('<div class="header" style="color: ' + data.color + ';">' + data.name + '</div><div class="message">' + data.text + '</div>');
         };
+        ws.onclose = function(event) {
+            $('#room-info').html('Your connection <span style="color: #ff0000;">failed</span>. You either timed out or put the name in wrong.');
+            $('#make-a-room, #join-a-room').show(400);
+            $('#chat-display').html('');
+            $('#message-area').off('keypress');
+        }
 
         $('#message-area').on('keypress', function(e) {
             if(e.which == 13) {

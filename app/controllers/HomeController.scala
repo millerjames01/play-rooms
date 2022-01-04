@@ -57,12 +57,15 @@ class HomeController @Inject()(managerActor: ActorRef[ManagerActor.Command],
     }
   }
 
-  def roomWS(id: String): WebSocket = WebSocket.acceptOrResult[JsValue, JsValue] { implicit rh: RequestHeader =>
+  def roomWS(id: String, clientName: String): WebSocket = WebSocket.acceptOrResult[JsValue, JsValue] { implicit rh: RequestHeader =>
     implicit val timeout: Timeout = Timeout(1.second)
-    val futureFlow = managerActor.ask(replyTo => ManagerActor.FlowQuery(id, replyTo))
+    val futureFlow = managerActor.ask(replyTo => ManagerActor.JoinRoom(id, clientName, replyTo))
 
     futureFlow.map { flow =>
-      Right(flow)
+      val watchedFlow = flow.watchTermination() { (_, termination) =>
+        termination foreach (_ => managerActor ! ManagerActor.Leave(id, clientName))
+      }
+      Right(watchedFlow)
     }.recover {
       case e: Exception =>
         logger.error("Failed to join the room.", e)

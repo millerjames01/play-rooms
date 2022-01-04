@@ -20,6 +20,8 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-stream-testkit" % AkkaVersion % Test
 )
 
+PlayKeys.devSettings += "play.server.http.idleTimeout" -> "5 minutes"
+
 // Adds additional packages into Twirl
 //TwirlKeys.templateImports += "com.example.controllers._"
 

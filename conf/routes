@@ -6,7 +6,7 @@
 # An example controller showing a sample home page
 GET     /                           controllers.HomeController.index()
 POST    /createRoom                 controllers.HomeController.createRoom()
-GET     /room/:id                   controllers.HomeController.roomWS(id: String)
+GET     /room/:id/:clientId         controllers.HomeController.roomWS(id: String, clientId: String)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
